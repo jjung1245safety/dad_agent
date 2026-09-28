@@ -33,15 +33,15 @@
 
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:12px}
   .sub{background:var(--panel2)}
-  label.f{display:block;margin-top:16px}
-  label.f:first-child{margin-top:0}
+  .f{display:block;margin-top:16px}
+  .f:first-child{margin-top:0}
   .flabel{display:block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
   input{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:10px 12px;font-size:16px;font-family:inherit;min-width:0;-webkit-appearance:none;appearance:none}
   input[type=time],input[type=month]{min-height:44px;display:block}
   input:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .row{display:flex;gap:12px}
   .row > *{flex:1;min-width:0}
-  .row label.f{margin-top:16px}
+  .row .f{margin-top:16px}
   .row3{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center}
   .row3 span{font-size:13px;color:var(--dim)}
   .chips{display:flex;flex-wrap:wrap;gap:8px}
@@ -67,6 +67,9 @@
   .fb{display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
   .fb button{background:var(--panel2);border:0;border-radius:6px;padding:6px 11px;font-size:12px;cursor:pointer;font-family:inherit}
   .ok{color:var(--mint)} .no{color:var(--coral)}
+  .fb .done{font-size:12px;color:var(--dim);align-self:center}
+  .fb .undo{background:transparent;color:var(--dim);text-decoration:underline;padding:6px 4px}
+  .warnline{color:var(--coral)}
   .warn{border-color:var(--coral)}
   .warn .flabel{color:var(--coral)}
   .tl{display:flex;gap:12px;margin-bottom:10px}
@@ -108,9 +111,12 @@
       <label class="f"><span class="flabel">사는 곳 (구 단위, 선택)</span>
         <input type="text" id="area" placeholder="예: 마포구" autocomplete="off" maxlength="30" /></label>
       <p class="note" style="margin:6px 0 0">주말 모임 장소를 이 지역 기준 차로 60분 이내로 찾습니다.</p>
-      <label class="f"><span class="flabel">모델</span><div class="chips" id="model"></div></label>
+      <div class="f"><span class="flabel">이 폰을 쓰는 사람</span><div class="chips" id="role"></div></div>
+      <p class="note" style="margin:6px 0 0">대사와 조언이 이 사람 기준으로 나옵니다.</p>
+      <div class="f"><span class="flabel">모델</span><div class="chips" id="model"></div></div>
       <button class="run" id="save-key">키 확인하고 저장</button>
       <button type="button" class="ghost hide" id="clear-key">저장된 키 삭제</button>
+      <button type="button" class="ghost" id="clear-log">통했음/안 통했음 기록 모두 비우기</button>
       <div class="state" id="key-state"></div>
       <hr style="border:0;border-top:1px solid var(--line);margin:18px 0" />
       <p class="note">
@@ -146,7 +152,7 @@
         <label class="f"><span class="flabel">귀가</span><input type="time" id="home" value="19:40" /></label>
         <label class="f"><span class="flabel">목표 취침</span><input type="time" id="bed" value="21:00" /></label>
       </div>
-      <label class="f"><span class="flabel">아이 컨디션</span><div class="chips" id="mood"></div></label>
+      <div class="f"><span class="flabel">아이 컨디션</span><div class="chips" id="mood"></div></div>
       <label class="f"><span class="flabel">오늘 특이사항 (선택)</span>
         <input id="note" placeholder="예: 어린이집에서 친구랑 다툼, 저녁 안 먹음" /></label>
       <button class="run" id="run-tonight">오늘 밤 짜기</button>
@@ -157,10 +163,10 @@
   <!-- 지금 이 상황 -->
   <section id="p-sos" class="hide">
     <div class="card">
-      <label class="f"><span class="flabel">지금 벌어진 일</span><div class="chips" id="sit"></div></label>
+      <div class="f"><span class="flabel">지금 벌어진 일</span><div class="chips" id="sit"></div></div>
       <label class="f hide" id="free-wrap"><span class="flabel">직접 입력</span>
         <input id="free" placeholder="예: 마트에서 젤리 사달라고 바닥에 누움" /></label>
-      <label class="f"><span class="flabel">장소</span><div class="chips" id="where"></div></label>
+      <div class="f"><span class="flabel">장소</span><div class="chips" id="where"></div></div>
       <button class="run" id="run-sos">대응 카드 열기</button>
     </div>
     <div id="out-sos"></div>
@@ -170,10 +176,12 @@
   <section id="p-weekend" class="hide">
     <div class="card">
       <div class="meta" style="margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid var(--line)">
-        <span id="kids-line">아이 4명 · 부모 전원 동석 기준</span>
+        <span id="kids-line">우리 가족만</span>
       </div>
-      <label class="f"><span class="flabel">날씨</span><div class="chips" id="weather"></div></label>
-      <label class="f"><span class="flabel">소요</span><div class="chips" id="span-w"></div></label>
+      <div class="f"><span class="flabel">날씨</span><div class="chips" id="weather"></div></div>
+      <div class="f"><span class="flabel">함께 가는 친구 (여러 명 선택)</span><div class="chips" id="with"></div></div>
+      <div class="f"><span class="flabel">어른 구성</span><div class="chips" id="adults"></div></div>
+      <div class="f"><span class="flabel">소요</span><div class="chips" id="span-w"></div></div>
       <div class="row" style="margin-top:16px">
         <label class="f"><span class="flabel">출발</span><input type="time" id="start" value="10:30" /></label>
         <label class="f"><span class="flabel">추가 조건</span><input id="wnote" placeholder="예: 실내, 유모차 필요" /></label>
@@ -201,30 +209,31 @@
   var log = [];
 
   /* ── 에이전트 고정 배경 ─────────────────────────── */
-  function ctx(){ var A = ages(); return [
+  function ctx(){ var A = ages(), R = role(); return [
     "[아이]",
     "- 만 " + A.me + "개월 여아. 외동.",
     "- 어린이집 09:00 등원 / 16:00 하원. 하원 후 어린이집 친구 가족들과 어울리는 날이 많음.",
     "- 차에서 낮잠을 아주 잘 잠 (2시간 이상 잔 적도 있음).",
     "",
-    "[아빠(사용자)]",
+    "[사용자] 이 앱을 쓰는 사람은 " + R + "다. 모든 행동 지시와 대사는 " + R + " 입장에서 쓸 것.",
+    "",
+    "[아빠]",
     "- 직장과 집이 멀어 통근 정체가 심함. 평일 아침 등원에 참여하지 못함.",
-    "- 근무 09~18시이나 1시간 일찍 출근. 실제 귀가는 19:30~20:30 사이.",
-    "- 평일에 딸과 보낼 수 있는 시간이 하루 30~90분뿐. 이 시간의 밀도가 가장 큰 관심사.",
-    "- 직업이 산업안전 관리자라 위험요인·절차 중심 사고에 익숙함. 추상적 조언보다 실행 순서를 선호.",
+    "- 평일 귀가는 보통 19:30~20:30. 평일에 딸과 보낼 수 있는 시간이 하루 30~90분뿐.",
+    "- 위험요인·절차 중심 사고에 익숙함. 추상적 조언보다 실행 순서를 선호.",
     "",
     "[엄마]",
     "- 사람 만나는 것을 좋아하고 부부 둘만의 육아를 힘들어함.",
+    R === "엄마" ? "- 엄마의 평일 일정은 요청에 적힌 시각을 따른다. 모르는 일정은 가정하지 말 것." : "",
     "",
     "[주말]",
-    "- 같은 아파트 어린이집 친구 3가족(" + A.f1 + "개월 남아, " + A.f2 + "개월 여아, " + A.f3 + "개월)과 주말 포함 거의 매일 모임.",
-    "- 아이들 총 4명(" + A.min + "~" + A.max + "개월), 부모도 전원 동석하는 형태.",
+    "- 같은 아파트 어린이집 친구 가족들과 주말 포함 자주 모임. 모임 구성은 매번 다르며 요청에 적힌 인원을 따른다.",
     "",
     "[반드시 지킬 것]",
     "- " + A.me + "개월 발달 특성에 근거해 답할 것. 이 나이에 맞지 않는 기대(긴 설명 이해, 스스로 감정 조절)를 전제하지 말 것.",
     "- 의학적 진단·치료·투약 조언 금지. 발달·건강 우려 신호는 영유아 건강검진 또는 소아청소년과 상담을 권할 것.",
-    "- 아이를 통제하는 기술이 아니라, 아빠가 실제로 할 행동과 실제로 뱉을 대사를 줄 것.",
-    "- 준비물이 많거나 아빠 혼자 감당 못 할 계획은 금지.",
+    "- 아이를 통제하는 기술이 아니라, " + R + "가 실제로 할 행동과 실제로 뱉을 대사를 줄 것.",
+    "- 준비물이 많거나 " + R + " 혼자 감당 못 할 계획은 금지.",
     "- 반드시 유효한 JSON만 출력. 코드펜스·설명 문장 금지."
   ].join("\n"); }
 
@@ -370,6 +379,7 @@
     var me = lsGet("born-born"); return okYM(me) ? me : "";
   }
   function area(){ return (lsGet("area") || "").slice(0, 30); }
+  function role(){ return lsGet("role") === "엄마" ? "엄마" : "아빠"; }
   function monthsSince(ym, now){
     if(!okYM(ym)) return 0;
     var p = ym.split("-"); now = now || new Date();
@@ -383,9 +393,9 @@
   }
   function paintAges(){
     var A = ages();
-    if(!okYM(lsGet("born-born"))){ $("eyebrow").textContent = "딸 · 아빠 전용"; return; }
-    $("eyebrow").textContent = A.me + "개월 · 딸 · 아빠 전용";
-    $("kids-line").textContent = "아이 4명 · " + A.list.split("·").join(" / ") + "개월 · 부모 전원 동석 기준";
+    if(!okYM(lsGet("born-born"))){ $("eyebrow").textContent = "딸 · " + role() + " 전용"; return; }
+    $("eyebrow").textContent = A.me + "개월 · 딸 · " + role() + " 전용";
+    if(typeof paintWith === "function"){ paintWith(); paintGroup(); }
   }
   function modelId(){ return lsGet(K_MODEL) || "claude-sonnet-5"; }
 
@@ -447,6 +457,27 @@
     $("retry-" + outId).addEventListener("click", retry);
   }
 
+  /* ── 통했음/안 통했음: 누른 뒤에도 취소 가능 ─────── */
+  function wireFeedback(box){
+    var ok = box.querySelector(".ok"), no = box.querySelector(".no");
+    var title = ok.getAttribute("data-t"), orig = box.innerHTML;
+    function mark(worked){
+      var at = Date.now();
+      log.push({ title: title, worked: worked, at: at });
+      saveLog(); stats();
+      box.innerHTML = '<span class="done">' + (worked ? "통했음" : "안 통했음") + '으로 기록</span>' +
+        '<button type="button" class="undo">취소</button>';
+      box.querySelector(".undo").addEventListener("click", function(){
+        log = log.filter(function(l){ return l.at !== at; });
+        saveLog(); stats();
+        box.innerHTML = orig;
+        wireFeedback(box);
+      });
+    }
+    ok.addEventListener("click", function(){ mark(true); });
+    no.addEventListener("click", function(){ mark(false); });
+  }
+
   /* ── 1. 오늘 밤 ─────────────────────────────────── */
   var MOOD = ["쌩쌩함","보통","예민함","낮잠 못 잠","콧물·기침"];
   chips("mood", MOOD, "보통");
@@ -470,11 +501,11 @@
     }).join("\n");
 
     var sys = ctx() + "\n\n" + [
-      "너는 이 아빠의 평일 저녁 담당 코치다. 귀가부터 취침까지 남은 시간을 블록으로 쪼개 설계한다.",
+      "너는 이 " + role() + "의 평일 저녁 담당 코치다. 귀가부터 취침까지 남은 시간을 블록으로 쪼개 설계한다.",
       "규칙:",
       "- blocks의 minutes 합계는 남은 시간의 70~85% 사이. 나머지는 지연·저항 대비 여유로 남긴다.",
       "- 목욕·양치·잠자리는 어차피 해야 하는 일이므로, 그 안에서 교감이 일어나도록 설계한다.",
-      "- 각 블록에 아빠가 실제로 뱉을 대사(say)를 1~2개. " + ages().me + "개월이 이해할 짧은 문장으로.",
+      "- 각 블록에 " + role() + "가 실제로 뱉을 대사(say)를 1~2개. " + ages().me + "개월이 이해할 짧은 문장으로.",
       "- 화면 노출과 각성 유발 몸놀이는 취침 40분 전부터 배제한다.",
       "- 분량 상한: blocks 3개 이하, why 40자 이내, how 2개 이하 각 30자 이내, say 1개 20자 이내, watch 40자 이내. 상한을 넘기지 마라.",
       "",
@@ -484,17 +515,20 @@
     var usr = "귀가 " + $("home").value + ", 목표 취침 " + $("bed").value + ", 남은 시간 " + T + "분.\n" +
       "아이 컨디션: " + picked.mood + "\n" +
       "오늘 특이사항: " + ($("note").value || "없음") +
-      (hist ? "\n\n최근 아빠 피드백:\n" + hist : "");
+      (hist ? "\n\n최근 " + role() + " 피드백:\n" + hist : "");
 
     ask(sys, usr).then(function(r){
       var blocks = arr(r.blocks);
       var used = blocks.reduce(function(a,b){ return a + (+b.minutes || 0); }, 0);
+      var base = Math.max(T, used) || 1;
       $("gauge").innerHTML = blocks.map(function(b,i){
-        var w = T ? ((+b.minutes||0)/T*100) : 0;
+        var w = (+b.minutes||0)/base*100;
         return '<i style="width:' + w.toFixed(1) + '%;background:' + (i%2 ? "var(--mint)" : "var(--lamp)") + '"></i>';
       }).join("");
-      $("split").className = "meta";
-      $("split").textContent = "계획 " + used + "분 · 여유 " + (T - used) + "분";
+      $("split").className = used > T ? "meta warnline" : "meta";
+      $("split").textContent = used > T
+        ? "계획 " + used + "분 · 남은 시간보다 " + (used - T) + "분 깁니다. 마지막 블록을 줄이십시오"
+        : "계획 " + used + "분 · 여유 " + (T - used) + "분";
 
       var html = '<p style="font-family:Georgia,serif;font-size:18px;margin:18px 2px 12px">' + esc(r.headline) + '</p>';
       blocks.forEach(function(b, i){
@@ -509,13 +543,7 @@
       if(r.watch) html += '<div class="card sub"><span class="flabel">오늘 놓치기 쉬운 것</span>' + esc(r.watch) + '</div>';
       $("out-tonight").innerHTML = html;
 
-      Array.prototype.forEach.call($("out-tonight").querySelectorAll(".fb button"), function(b){
-        b.addEventListener("click", function(){
-          log.push({ title: b.getAttribute("data-t"), worked: b.getAttribute("data-w") === "1", at: Date.now() });
-          saveLog(); stats();
-          b.parentNode.innerHTML = '<span style="font-size:12px;color:var(--dim)">기록됨</span>';
-        });
-      });
+      Array.prototype.forEach.call($("out-tonight").querySelectorAll(".fb"), wireFeedback);
     }).catch(function(e){
       errBox("out-tonight", e, runTonight);
     }).then(function(){
@@ -537,10 +565,10 @@
     $("out-sos").innerHTML = "";
 
     var sys = ctx() + "\n\n" + [
-      "너는 상황이 벌어지는 그 자리에서 아빠가 30초 안에 읽는 대응 카드다.",
+      "너는 상황이 벌어지는 그 자리에서 " + role() + "가 30초 안에 읽는 대응 카드다.",
       "규칙:",
       "- 훈육이 아니라 감정 조절 보조가 " + ages().me + "개월의 기준이다. 설명·설득·협상은 이 나이에 통하지 않는다.",
-      "- steps는 3~4단계. 각 단계에 아빠의 몸 동작(action)과 실제 대사(say)를 함께 준다.",
+      "- steps는 3~4단계. 각 단계에 " + role() + "의 몸 동작(action)과 실제 대사(say)를 함께 준다.",
       "- 대사는 6어절 이내, 아이가 아는 단어로.",
       "- 체벌, 겁주기, 방에 혼자 가두기, 음식으로 협상하기는 절대 제안하지 않는다.",
       "- 집 밖이면 남의 시선보다 아이 안전과 진정이 우선임을 전제로 짠다.",
@@ -575,18 +603,65 @@
   chips("weather", ["맑음","더움","추움","비","미세먼지 나쁨"], "맑음");
   chips("span-w", ["2시간 이내","반나절 (3~4시간)","하루 종일"], "반나절 (3~4시간)");
 
+  var FRIENDS = [{ id:"f1", name:"친구1", sex:"남아" }, { id:"f2", name:"친구2", sex:"여아" }, { id:"f3", name:"친구3", sex:"" }];
+  var ADULTS = ["가족마다 부모 둘 다", "가족마다 한 명씩"];
+  function savedWith(){
+    var v = lsGet("wk-with"); if(v === null) return ["f1","f2","f3"];
+    return v ? v.split(",").filter(function(x){ return /^f[123]$/.test(x); }) : [];
+  }
+  var withSel = savedWith();
+  function friendLabel(f){ return f.name + (f.sex ? "(" + f.sex.charAt(0) + ")" : "") + " " + ages()[f.id] + "개월"; }
+  function paintWith(){
+    var box = $("with");
+    box.innerHTML = FRIENDS.map(function(f){
+      var on = withSel.indexOf(f.id) !== -1;
+      return '<button type="button" class="chip' + (on ? " on" : "") + '" data-f="' + f.id + '" aria-pressed="' + on + '">' + esc(friendLabel(f)) + '</button>';
+    }).join("");
+  }
+  $("with").addEventListener("click", function(ev){
+    var b = ev.target.closest(".chip"); if(!b) return;
+    var id = b.getAttribute("data-f"), i = withSel.indexOf(id);
+    if(i === -1) withSel.push(id); else withSel.splice(i, 1);
+    withSel.sort(); lsSet("wk-with", withSel.join(","));
+    var on = withSel.indexOf(id) !== -1;
+    b.className = "chip" + (on ? " on" : ""); b.setAttribute("aria-pressed", on);
+    paintGroup();
+  });
+  chips("adults", ADULTS, lsGet("wk-adults") === ADULTS[1] ? ADULTS[1] : ADULTS[0], function(v){ lsSet("wk-adults", v); paintGroup(); });
+
+  function group(){
+    var A = ages(), kids = [{ who:"우리 딸", m:A.me, sex:"여아" }];
+    FRIENDS.forEach(function(f){ if(withSel.indexOf(f.id) !== -1) kids.push({ who:f.name, m:A[f.id], sex:f.sex }); });
+    var fam = kids.length, per = picked.adults === ADULTS[1] ? 1 : 2, adults = fam * per;
+    var ms = kids.map(function(k){ return k.m; });
+    return { kids:kids, fam:fam, adults:adults, per:per,
+      min:Math.min.apply(null, ms), max:Math.max.apply(null, ms),
+      desc: kids.map(function(k){ return k.who + " " + k.m + "개월" + (k.sex ? " " + k.sex : ""); }).join(", ") };
+  }
+  function paintGroup(){
+    if(!$("with").children.length) paintWith();
+    var G = group();
+    $("kids-line").textContent = G.fam === 1
+      ? "우리 가족만 · 아이 1명 · 어른 " + G.adults + "명"
+      : G.fam + "가족 · 아이 " + G.kids.length + "명 · 어른 " + G.adults + "명";
+  }
+
   function runWeekend(){
     if(!apiKey()){ showSetup(true); return; }
     busy("run-weekend", true);
     $("out-weekend").innerHTML = "";
+    var G = group();
 
     var sys = ctx() + "\n\n" + [
-      "너는 4가족 합동 나들이의 사전 설계자다. 아이 4명(" + ages().list + "개월)과 부모 8명이 함께 움직인다.",
+      "너는 가족 나들이의 사전 설계자다. 이번 구성: " + (G.fam === 1 ? "우리 가족만" : G.fam + "가족 합동") + ", 아이 " + G.kids.length + "명(" + G.desc + "), 어른 " + G.adults + "명.",
       "규칙:",
-      "- " + ages().min + "개월과 " + ages().max + "개월은 체력과 낮잠 시점이 다르다. 가장 어린 아이를 기준으로 이동 거리를 잡는다.",
+      G.kids.length > 1
+        ? "- " + G.min + "개월과 " + G.max + "개월은 체력과 낮잠 시점이 다르다. 가장 어린 아이를 기준으로 이동 거리를 잡는다."
+        : "- 아이 1명 기준으로 낮잠 시점에 맞춰 이동을 잡는다.",
+      "- 어른 1명당 아이 " + (G.kids.length / G.adults).toFixed(1).replace(/\.0$/, "") + "명이다. 이 비율로 감당 가능한 동선과 활동만 제안한다.",
       "- " + (area() ? area() + "에서" : "집에서") + " 차로 60분 이내를 기본 반경. 특정 상호명이 확실하지 않으면 'OO 유형의 장소'로 제시하고 사전 확인이 필요함을 명시한다.",
       "- timeline에 이동 중 차량 낮잠, 식사, 기저귀·화장실 지점을 반드시 배치한다.",
-      "- risk에는 아이 4명 동시 인솔 시 안전 취약점을 구체적으로 쓴다(주차장 동선, 물가, 계단, 미아 등).",
+      "- risk에는 어른 " + G.adults + "명이 아이 " + G.kids.length + "명을 인솔할 때의 안전 취약점을 구체적으로 쓴다(주차장 동선, 물가, 계단, 미아 등).",
       "- 분량 상한: why 60자 이내, timeline 6개 이하 각 what 30자 이내, pack 8개 이하 각 10자 이내, risk 70자 이내, confirm 40자 이내.",
       "",
       'JSON: {"pick":"장소 또는 활동 유형","why":"1~2문장","confirm":"미리 확인할 것 1문장","timeline":[{"time":"10:30","what":""}],"pack":["준비물"],"risk":"안전 취약점"}'
@@ -628,6 +703,7 @@
     return MODEL_LABELS[0];
   }
   chips("model", MODEL_LABELS, currentLabel());
+  chips("role", ["아빠", "엄마"], role());
 
   function showSetup(on){
     $("p-setup").className = on ? "" : "hide";
@@ -665,6 +741,7 @@
       var m = $(id).value; if(okYM(m)) lsSet("born-" + id, m); else lsDel("born-" + id);
     });
     lsSet("area", $("area").value.trim().slice(0, 30));
+    lsSet("role", picked.role === "엄마" ? "엄마" : "아빠");
     var prevKey = apiKey(), prevModel = lsGet(K_MODEL);
     lsSet(K_KEY, v);
     lsSet(K_MODEL, MODELS[picked.model] || "claude-sonnet-5");
@@ -677,6 +754,11 @@
       if(prevModel) lsSet(K_MODEL, prevModel); else lsDel(K_MODEL);
       setState("저장하지 않았습니다: " + e.message, "var(--coral)");
     }).then(function(){ btn.disabled = false; btn.textContent = "키 확인하고 저장"; });
+  });
+
+  $("clear-log").addEventListener("click", function(){
+    log = []; saveLog(); stats();
+    setState("통했음/안 통했음 기록을 비웠습니다", "var(--mint)");
   });
 
   $("clear-key").addEventListener("click", function(){
