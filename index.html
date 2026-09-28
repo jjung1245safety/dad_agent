@@ -5,10 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>남은 시간을 쓰는 법</title>
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="남은 시간" />
-<meta name="theme-color" content="#14121F" />
-<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#F2F4F6" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+<meta name="color-scheme" content="light dark" />
 <meta name="format-detection" content="telephone=no" />
 <link rel="manifest" href="./manifest.webmanifest" />
 <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
@@ -108,6 +109,72 @@
   .state{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;margin-top:10px}
   @media (prefers-reduced-motion:no-preference){.card{animation:in .25s ease both}}
   @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ── 테마: 아이폰 라이트 모드 = 토스식 라이트, 다크 모드 = iOS 기본앱 다크 ── */
+  :root{color-scheme:light dark}
+  .eyebrow,.flabel,.meta,.clock,.pill,.num,.tl b,.info,.restored,.rank,.state,.info .src,.hrow .open small{font-family:inherit !important;letter-spacing:0 !important;text-transform:none !important}
+  h1,h3,[style*="Georgia"]{font-family:inherit !important}
+  [style*="Georgia"]{font-weight:700}
+  .say{border-left:0 !important;padding-left:0 !important;font-weight:600}
+  body{font-family:-apple-system,"SF Pro Text","Apple SD Gothic Neo","Pretendard","Malgun Gothic",sans-serif}
+  .big{font-family:inherit !important}
+  .rank,.num{color:#fff !important}
+
+  @media (prefers-color-scheme: light){
+    :root{--bg:#F2F4F6;--panel:#FFFFFF;--panel2:#F2F4F6;--line:#E5E8EB;--text:#191F28;--dim:#6B7684;--lamp:#3182F6;--mint:#00C471;--coral:#F04452;--sky:#3182F6;--accent:#3182F6}
+    h1{font-size:26px !important;font-weight:800 !important;letter-spacing:-0.5px}
+    .eyebrow{font-size:13px !important;color:#3182F6 !important;font-weight:700}
+    .card{border:0 !important;border-radius:20px !important;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .card.warn{border:1.5px solid #FFD4D8 !important}
+    .sub{background:#F9FAFB !important}
+    .flabel{font-size:13px !important;font-weight:600;color:#4E5968 !important}
+    .big{font-weight:800 !important;color:#191F28 !important;font-size:56px !important;letter-spacing:-2px}
+    nav{background:#E5E8EB !important;border-radius:12px !important}
+    nav button.on{background:#fff !important;color:#191F28 !important;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+    .chip{border:0 !important;background:#F2F4F6 !important;color:#4E5968 !important;font-size:14px !important;padding:9px 14px !important}
+    .chip.on{background:#E8F3FF !important;color:#1B64DA !important;font-weight:700}
+    .run{border-radius:16px !important;font-size:16px !important;padding:16px !important;color:#fff !important}
+    .run[disabled]{background:#E5E8EB !important;color:#8B95A1 !important}
+    input,textarea{background:#F2F4F6 !important;border:0 !important;color:#191F28 !important}
+    .gauge{background:#E5E8EB !important} .gauge i{border:0 !important}
+    .pill{background:#E8F3FF !important;color:#1B64DA !important}
+    .say{color:#1B64DA !important}
+    .gear{background:#fff !important;border:0 !important;color:#4E5968 !important}
+    .fb button,.links a,.hrow .del{background:#F2F4F6 !important;border:0 !important}
+    .links a{color:#1B64DA !important}
+    .info{background:#F2F4F6 !important}
+    .info .src{color:#00A060 !important}
+    .tag{background:#F2F4F6 !important;color:#333D4B !important}
+    footer{color:#8B95A1 !important;border-top-color:#E5E8EB !important}
+  }
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#000000;--panel:#1C1C1E;--panel2:#2C2C2E;--line:#38383A;--text:#FFFFFF;--dim:#8E8E93;--lamp:#FF9F0A;--mint:#30D158;--coral:#FF453A;--sky:#0A84FF;--accent:#0A84FF}
+    h1{font-size:30px !important;font-weight:700 !important;letter-spacing:-0.5px}
+    .eyebrow{font-size:13px !important;color:#8E8E93 !important;font-weight:400}
+    .card{border:0 !important;border-radius:12px !important;box-shadow:none}
+    .card.warn{border:1px solid #5C1F1B !important}
+    .sub{background:#2C2C2E !important}
+    .flabel{font-size:13px !important;color:#8E8E93 !important;font-weight:400}
+    .big{font-weight:700 !important;color:#FFFFFF !important;font-size:52px !important}
+    nav{background:#1C1C1E !important;border-radius:9px !important;padding:2px !important}
+    nav button{border-radius:7px !important;font-size:13px !important;padding:8px 4px !important}
+    nav button.on{background:#636366 !important;color:#fff !important}
+    .chip{border:0 !important;background:#2C2C2E !important;color:#FFFFFF !important;font-size:14px !important;border-radius:8px !important;padding:8px 13px !important}
+    .chip.on{background:#0A84FF !important;color:#fff !important;font-weight:600}
+    .run{border-radius:12px !important;font-size:17px !important;font-weight:600 !important;color:#fff !important;background:#0A84FF !important}
+    .run[disabled]{background:#2C2C2E !important;color:#8E8E93 !important}
+    input,textarea{background:#2C2C2E !important;border:0 !important;color:#fff !important;border-radius:10px !important}
+    .gauge{background:#2C2C2E !important;height:8px !important} .gauge i{border:0 !important}
+    .pill{background:#2C2C2E !important;color:#FF9F0A !important}
+    .say{color:#0A84FF !important}
+    .gear{background:transparent !important;border:0 !important;color:#0A84FF !important;font-size:17px !important;padding:6px 0 !important}
+    .fb button,.links a,.hrow .del{background:#2C2C2E !important;border:0 !important}
+    .links a{color:#0A84FF !important}
+    .info{background:#2C2C2E !important}
+    .info .src{color:#30D158 !important}
+    .tag{background:#2C2C2E !important;color:#fff !important}
+    footer{color:#8E8E93 !important;border-top-color:#38383A !important}
+  }
 </style>
 </head>
 <body>
