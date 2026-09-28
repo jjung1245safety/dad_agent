@@ -75,8 +75,11 @@
   .pick h3{font-size:19px;color:var(--sky);margin:0}
   .rank{display:inline-block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;font-weight:700;color:var(--bg);background:var(--sky);border-radius:6px;padding:2px 7px;margin-bottom:8px}
   .where{font-size:13px;color:var(--dim);margin:6px 0 10px}
-  .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-  .links a{font-size:12px;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 11px;text-decoration:none}
+  .links{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:12px}
+  .links a{font-size:11px;color:var(--sky);background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:5px 10px;text-decoration:none}
+  .links .sep{font-size:10px;color:var(--line)}
+  .info{background:var(--panel2);border-radius:8px;padding:9px 12px;margin-top:12px;font-size:12px;color:var(--dim);font-family:ui-monospace,Menlo,Consolas,monospace}
+  .info .src{display:block;margin-top:6px;font-family:inherit;font-size:11px;color:var(--mint);text-decoration:underline;text-underline-offset:2px;word-break:break-all}
   .srcs a{color:var(--dim);font-size:11px;word-break:break-all}
   .restored{font-size:11px;color:var(--dim);margin:14px 2px 0;font-family:ui-monospace,Menlo,Consolas,monospace}
   .warn{border-color:var(--coral)}
@@ -801,6 +804,7 @@
       : G.fam + "가족 · 아이 " + G.kids.length + "명 · 어른 " + G.adults + "명";
   }
 
+  function hostOf(u){ try{ return new URL(u).hostname.replace(/^www\./, ""); }catch(e){ return "페이지"; } }
   function runWeekend(){
     if(!apiKey()){ showSetup(true); return; }
     busy("run-weekend", true);
@@ -864,11 +868,13 @@
           '<h3>' + esc(p.name) + '</h3>' +
           '<p class="where">' + esc([p.area, p.drive].filter(Boolean).join(" · ")) + '</p>' +
           (p.why ? '<p style="font-size:14px;margin:0">' + esc(p.why) + '</p>' : "") +
-          (p.check ? '<p class="meta" style="background:var(--panel2);border-radius:8px;padding:9px 12px;margin-top:12px">' + esc(p.check) + '</p>' : "") +
+          ((p.check || src) ? '<div class="info">' + esc(p.check || "운영 정보 확인 필요") +
+            (src ? '<a class="src" href="' + esc(src) + '" target="_blank" rel="noopener noreferrer">출처 · ' + esc(hostOf(src)) + ' ↗</a>' : "") +
+          '</div>' : "") +
           '<div class="links">' +
-            '<a href="https://map.naver.com/p/search/' + q + '" target="_blank" rel="noopener">네이버 지도 길찾기</a>' +
+            '<a href="tmap://search?name=' + q + '">티맵</a><span class="sep">·</span>' +
+            '<a href="https://map.naver.com/p/search/' + q + '" target="_blank" rel="noopener">네이버지도</a><span class="sep">·</span>' +
             '<a href="https://map.kakao.com/link/search/' + q + '" target="_blank" rel="noopener">카카오맵</a>' +
-            (src ? '<a href="' + esc(src) + '" target="_blank" rel="noopener noreferrer">근거 페이지</a>' : "") +
           '</div></div>';
       });
       if(arr(r.timeline).length){
@@ -888,7 +894,7 @@
             return /^https?:\/\//.test(x.url) ? '<div><a href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">' + esc(x.title) + '</a></div>' : "";
           }).join("") + '</div>';
       }
-      html += '<p class="note" style="margin:4px 2px 0">거리·시간은 추정입니다. 출발 전 지도 앱과 운영 정보를 확인하십시오.</p>';
+      html += '<p class="note" style="margin:4px 2px 0">거리·시간은 추정입니다. 출발 전 지도 앱과 운영 정보를 확인하십시오. 티맵 버튼은 티맵 앱이 설치된 폰에서만 열립니다.</p>';
       $("out-weekend").innerHTML = html;
       keep("weekend");
     }).catch(function(e){

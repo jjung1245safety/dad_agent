@@ -1,5 +1,5 @@
 /* 오프라인 셸 캐시. API 호출은 절대 캐시하지 않는다. */
-var CACHE = "dad-agent-v7";
+var CACHE = "dad-agent-v8";
 var SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", function(e){
