@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>남은 시간을 쓰는 법</title>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="남은 시간" />
+<meta name="theme-color" content="#14121F" />
+<meta name="color-scheme" content="dark" />
+<meta name="format-detection" content="telephone=no" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="apple-touch-icon" href="./apple-touch-icon.png" />
+<style>
+  :root{
+    --bg:#14121F; --panel:#1E1B2E; --panel2:#262239; --line:#332E4C;
+    --text:#EDEAF5; --dim:#918BAD;
+    --lamp:#F5B942; --mint:#79D6AE; --coral:#EE7B6B; --sky:#8FB8F0;
+    --accent:var(--lamp);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text)}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo",sans-serif;line-height:1.55}
+  .wrap{max-width:680px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(60px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
+  .eyebrow{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
+  h1{font-family:Georgia,"Times New Roman","Batang",serif;font-size:30px;font-weight:500;margin:0;line-height:1.2}
+  .meta{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--dim);margin-top:8px}
+
+  nav{display:flex;gap:4px;background:var(--panel);border-radius:14px;padding:4px;margin:22px 0}
+  nav button{flex:1;border:0;background:transparent;color:var(--dim);font-size:12px;padding:11px 4px;border-radius:10px;cursor:pointer;font-family:inherit}
+  nav button.on{background:var(--panel2);font-weight:700}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:12px}
+  .sub{background:var(--panel2)}
+  label.f{display:block;margin-top:16px}
+  label.f:first-child{margin-top:0}
+  .flabel{display:block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+  input{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:9px;padding:10px 12px;font-size:16px;font-family:inherit;min-width:0;-webkit-appearance:none;appearance:none}
+  input[type=time],input[type=month]{min-height:44px;display:block}
+  input:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .row{display:flex;gap:12px}
+  .row > *{flex:1;min-width:0}
+  .row label.f{margin-top:16px}
+  .row3{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center}
+  .row3 span{font-size:13px;color:var(--dim)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{border:1px solid var(--line);background:var(--panel2);color:var(--dim);border-radius:999px;padding:7px 13px;font-size:12px;cursor:pointer;font-family:inherit}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:700}
+
+  .run{width:100%;margin-top:18px;border:0;border-radius:10px;padding:14px;background:var(--accent);color:var(--bg);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+  .run[disabled]{background:var(--panel2);color:var(--dim);cursor:wait}
+
+  .gauge{height:12px;border-radius:999px;background:var(--panel2);display:flex;overflow:hidden}
+  .gauge i{display:block;border-right:1px solid var(--bg)}
+  .big{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:54px;font-weight:700;color:var(--lamp);line-height:1}
+  .head-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:16px}
+  .clock{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--dim)}
+
+  h3{font-family:Georgia,"Times New Roman","Batang",serif;font-size:16px;font-weight:600;margin:0}
+  .pill{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;font-weight:700;background:var(--panel2);color:var(--lamp);border-radius:6px;padding:2px 8px}
+  .num{width:24px;height:24px;border-radius:999px;background:var(--accent);color:var(--bg);font-family:ui-monospace,monospace;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:0 0 24px}
+  .why{font-size:12px;color:var(--dim);margin:8px 0 12px}
+  ol.how{margin:0 0 12px;padding-left:18px;font-size:14px}
+  ol.how li{margin-bottom:4px}
+  .say{font-size:14px;border-left:2px solid var(--mint);padding-left:10px;margin:6px 0}
+  .fb{display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+  .fb button{background:var(--panel2);border:0;border-radius:6px;padding:6px 11px;font-size:12px;cursor:pointer;font-family:inherit}
+  .ok{color:var(--mint)} .no{color:var(--coral)}
+  .warn{border-color:var(--coral)}
+  .warn .flabel{color:var(--coral)}
+  .tl{display:flex;gap:12px;margin-bottom:10px}
+  .tl b{font-family:ui-monospace,monospace;font-size:12px;color:var(--sky);font-weight:400;flex:0 0 46px}
+  .tl span{font-size:14px}
+  .tag{display:inline-block;background:var(--panel2);border-radius:999px;padding:5px 12px;font-size:12px;margin:0 6px 6px 0}
+  footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--line);font-size:11px;color:var(--dim)}
+  .hide{display:none}
+  .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .gear{flex:0 0 auto;background:var(--panel);border:1px solid var(--line);color:var(--dim);border-radius:10px;padding:9px 13px;font-size:12px;cursor:pointer;font-family:inherit}
+  .note{font-size:12px;color:var(--dim);line-height:1.6}
+  .note b{color:var(--text);font-weight:600}
+  .ghost{background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:9px;padding:11px;font-size:13px;cursor:pointer;font-family:inherit;width:100%;margin-top:8px}
+  .state{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;margin-top:10px}
+  @media (prefers-reduced-motion:no-preference){.card{animation:in .25s ease both}}
+  @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow" id="eyebrow">딸 · 아빠 전용</div>
+      <h1>남은 시간을 쓰는 법</h1>
+      <div class="meta" id="stats"></div>
+    </div>
+    <button type="button" class="gear" id="gear">설정</button>
+  </header>
+
+  <section id="p-setup" class="hide">
+    <div class="card">
+      <label class="f"><span class="flabel">Anthropic API 키</span>
+        <input type="password" id="key" placeholder="sk-ant-..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" /></label>
+      <label class="f"><span class="flabel">딸 태어난 달</span>
+        <input type="month" id="born" /></label>
+      <div class="f" style="margin-top:16px"><span class="flabel">친구 3명 태어난 달 (대략이면 충분)</span>
+        <div class="row3"><span>친구1 (남)</span><input type="month" id="f1" aria-label="친구1" /><span>친구2 (여)</span><input type="month" id="f2" aria-label="친구2" /><span>친구3</span><input type="month" id="f3" aria-label="친구3" /></div></div>
+      <p class="note" style="margin:8px 0 0">개월 수는 매달 자동으로 올라갑니다. 친구 칸을 비우면 딸과 같은 달로 계산합니다.</p>
+      <label class="f"><span class="flabel">사는 곳 (구 단위, 선택)</span>
+        <input type="text" id="area" placeholder="예: 마포구" autocomplete="off" maxlength="30" /></label>
+      <p class="note" style="margin:6px 0 0">주말 모임 장소를 이 지역 기준 차로 60분 이내로 찾습니다.</p>
+      <label class="f"><span class="flabel">모델</span><div class="chips" id="model"></div></label>
+      <button class="run" id="save-key">키 확인하고 저장</button>
+      <button type="button" class="ghost hide" id="clear-key">저장된 키 삭제</button>
+      <div class="state" id="key-state"></div>
+      <hr style="border:0;border-top:1px solid var(--line);margin:18px 0" />
+      <p class="note">
+        키는 <b>이 기기의 브라우저에만</b> 저장되며 서버로 전송되지 않습니다. 앱 파일 안에도 들어가지 않으므로
+        주소를 아는 사람이 대신 사용할 수 없습니다.<br /><br />
+        키 발급: platform.claude.com → Settings → API keys → Create key<br />
+        1회 실행 비용은 Sonnet 5 기준 약 10~30원, Haiku 4.5 기준 약 5~15원입니다.<br /><br />
+        <b>주의:</b> Safari 창에서 저장한 키는 홈 화면 앱으로 넘어가지 않습니다. 반드시 홈 화면 아이콘으로 연 뒤 입력하십시오.
+      </p>
+    </div>
+  </section>
+
+  <nav>
+    <button data-tab="tonight" class="on">오늘 밤</button>
+    <button data-tab="sos">지금 이 상황</button>
+    <button data-tab="weekend">주말 모임</button>
+  </nav>
+
+  <!-- 오늘 밤 -->
+  <section id="p-tonight">
+    <div class="card">
+      <div class="head-row">
+        <div>
+          <div class="eyebrow">오늘 남은 시간</div>
+          <span class="big" id="left">80</span><span style="color:var(--dim);font-size:13px"> 분</span>
+        </div>
+        <div class="clock" id="span">19:40 → 21:00</div>
+      </div>
+      <div class="gauge" id="gauge"></div>
+      <div class="meta hide" id="split"></div>
+
+      <div class="row" style="margin-top:18px">
+        <label class="f"><span class="flabel">귀가</span><input type="time" id="home" value="19:40" /></label>
+        <label class="f"><span class="flabel">목표 취침</span><input type="time" id="bed" value="21:00" /></label>
+      </div>
+      <label class="f"><span class="flabel">아이 컨디션</span><div class="chips" id="mood"></div></label>
+      <label class="f"><span class="flabel">오늘 특이사항 (선택)</span>
+        <input id="note" placeholder="예: 어린이집에서 친구랑 다툼, 저녁 안 먹음" /></label>
+      <button class="run" id="run-tonight">오늘 밤 짜기</button>
+    </div>
+    <div id="out-tonight"></div>
+  </section>
+
+  <!-- 지금 이 상황 -->
+  <section id="p-sos" class="hide">
+    <div class="card">
+      <label class="f"><span class="flabel">지금 벌어진 일</span><div class="chips" id="sit"></div></label>
+      <label class="f hide" id="free-wrap"><span class="flabel">직접 입력</span>
+        <input id="free" placeholder="예: 마트에서 젤리 사달라고 바닥에 누움" /></label>
+      <label class="f"><span class="flabel">장소</span><div class="chips" id="where"></div></label>
+      <button class="run" id="run-sos">대응 카드 열기</button>
+    </div>
+    <div id="out-sos"></div>
+  </section>
+
+  <!-- 주말 모임 -->
+  <section id="p-weekend" class="hide">
+    <div class="card">
+      <div class="meta" style="margin:0 0 14px;padding-bottom:12px;border-bottom:1px solid var(--line)">
+        <span id="kids-line">아이 4명 · 부모 전원 동석 기준</span>
+      </div>
+      <label class="f"><span class="flabel">날씨</span><div class="chips" id="weather"></div></label>
+      <label class="f"><span class="flabel">소요</span><div class="chips" id="span-w"></div></label>
+      <div class="row" style="margin-top:16px">
+        <label class="f"><span class="flabel">출발</span><input type="time" id="start" value="10:30" /></label>
+        <label class="f"><span class="flabel">추가 조건</span><input id="wnote" placeholder="예: 실내, 유모차 필요" /></label>
+      </div>
+      <button class="run" id="run-weekend">모임 설계하기</button>
+    </div>
+    <div id="out-weekend"></div>
+  </section>
+
+  <footer>
+    이 도구는 일반적인 육아 참고 정보만 제공합니다. 발달·건강이 걱정되면 영유아 건강검진 또는
+    소아청소년과에서 확인하십시오. 생성된 장소·시설 정보는 방문 전 직접 확인이 필요합니다.
+    기록은 이 기기에만 저장됩니다.
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var esc = function(s){ return String(s == null ? "" : s)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); };
+  var arr = function(v){ return Array.isArray(v) ? v : []; };
+  var KEY = "dad-agent-log-v1";
+  var log = [];
+
+  /* ── 에이전트 고정 배경 ─────────────────────────── */
+  function ctx(){ var A = ages(); return [
+    "[아이]",
+    "- 만 " + A.me + "개월 여아. 외동.",
+    "- 어린이집 09:00 등원 / 16:00 하원. 하원 후 어린이집 친구 가족들과 어울리는 날이 많음.",
+    "- 차에서 낮잠을 아주 잘 잠 (2시간 이상 잔 적도 있음).",
+    "",
+    "[아빠(사용자)]",
+    "- 직장과 집이 멀어 통근 정체가 심함. 평일 아침 등원에 참여하지 못함.",
+    "- 근무 09~18시이나 1시간 일찍 출근. 실제 귀가는 19:30~20:30 사이.",
+    "- 평일에 딸과 보낼 수 있는 시간이 하루 30~90분뿐. 이 시간의 밀도가 가장 큰 관심사.",
+    "- 직업이 산업안전 관리자라 위험요인·절차 중심 사고에 익숙함. 추상적 조언보다 실행 순서를 선호.",
+    "",
+    "[엄마]",
+    "- 사람 만나는 것을 좋아하고 부부 둘만의 육아를 힘들어함.",
+    "",
+    "[주말]",
+    "- 같은 아파트 어린이집 친구 3가족(" + A.f1 + "개월 남아, " + A.f2 + "개월 여아, " + A.f3 + "개월)과 주말 포함 거의 매일 모임.",
+    "- 아이들 총 4명(" + A.min + "~" + A.max + "개월), 부모도 전원 동석하는 형태.",
+    "",
+    "[반드시 지킬 것]",
+    "- " + A.me + "개월 발달 특성에 근거해 답할 것. 이 나이에 맞지 않는 기대(긴 설명 이해, 스스로 감정 조절)를 전제하지 말 것.",
+    "- 의학적 진단·치료·투약 조언 금지. 발달·건강 우려 신호는 영유아 건강검진 또는 소아청소년과 상담을 권할 것.",
+    "- 아이를 통제하는 기술이 아니라, 아빠가 실제로 할 행동과 실제로 뱉을 대사를 줄 것.",
+    "- 준비물이 많거나 아빠 혼자 감당 못 할 계획은 금지.",
+    "- 반드시 유효한 JSON만 출력. 코드펜스·설명 문장 금지."
+  ].join("\n"); }
+
+  /* ── API ─────────────────────────────────────────── */
+  var lastRaw = "";
+
+  // 잘린 JSON 복구: 마지막으로 완결된 객체까지 자르고 괄호를 닫는다
+  function parseLoose(c){
+    var s0 = c.indexOf("{"), e0 = c.lastIndexOf("}");
+    if(s0 === -1) throw new Error("본문에 JSON이 없음");
+    if(e0 > s0){
+      try{ return JSON.parse(c.slice(s0, e0 + 1)); }catch(err){}
+    }
+    var t = c.slice(s0);
+    for(var i = t.length - 1; i > 0; i--){
+      if(t.charAt(i) !== "}") continue;
+      var cand = t.slice(0, i + 1);
+      var ob = (cand.match(/{/g)||[]).length - (cand.match(/}/g)||[]).length;
+      var ab = (cand.match(/\[/g)||[]).length - (cand.match(/]/g)||[]).length;
+      if(ob < 0 || ab < 0) continue;
+      var fix = cand + new Array(ab + 1).join("]") + new Array(ob + 1).join("}");
+      try{ return JSON.parse(fix); }catch(err2){}
+    }
+    throw new Error("본문 해석 실패");
+  }
+
+  function apiError(status, m){
+    var low = String(m || "").toLowerCase(), msg, stop = true;
+    if(status === 401) msg = "API 키가 틀렸거나 삭제되었습니다 (401)";
+    else if(status === 403) msg = "이 키로는 권한이 없습니다 (403)";
+    else if(status === 402 || low.indexOf("credit balance") !== -1 || low.indexOf("billing") !== -1) msg = "크레딧 잔액이 부족하거나 결제 정보에 문제가 있습니다. 콘솔 Billing을 확인하십시오";
+    else if(status === 400 && (low.indexOf("spend limit") !== -1 || low.indexOf("usage limit") !== -1 || low.indexOf("limit") !== -1 && low.indexOf("model") === -1)) msg = "월 사용 한도에 도달했습니다. 콘솔에서 한도를 올리거나 다음 달까지 기다리십시오";
+    else if(status === 404 || (status === 400 && low.indexOf("model") !== -1)) msg = "모델을 찾을 수 없습니다. 설정에서 다른 모델을 고르십시오 (" + status + ")";
+    else if(status === 429) msg = "짧은 시간에 요청이 많았거나 사용 등급 한도에 걸렸습니다 (429)";
+    else if(status >= 500){ msg = "Anthropic 서버가 일시적으로 바쁩니다 (" + status + ")"; stop = false; }
+    else msg = "요청이 거부되었습니다 (" + status + ")" + (m ? " " + m.slice(0, 120) : "");
+    var e = new Error(msg); e.noRetry = stop; return e;
+  }
+
+  function agent(system, user, maxTok, rawOk){
+    var stage = "요청 전송";
+    var ctrl = (typeof AbortController !== "undefined") ? new AbortController() : null;
+    var timer = setTimeout(function(){ if(ctrl) ctrl.abort(); }, 60000);
+
+    return fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{
+        "content-type":"application/json",
+        "x-api-key": apiKey(),
+        "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true"
+      },
+      signal: ctrl ? ctrl.signal : undefined,
+      body: JSON.stringify({
+        model: modelId(),
+        max_tokens: maxTok || 2000,
+        messages:[{role:"user", content: system ? system + "\n\n---\n\n" + user : user}]
+      })
+    }).then(function(r){
+      stage = "응답 수신";
+      if(!r.ok){
+        return r.text().then(function(t){
+          var m = ""; try{ m = (JSON.parse(t).error || {}).message || ""; }catch(x){}
+          throw apiError(r.status, m);
+        }, function(){ throw apiError(r.status, ""); });
+      }
+      return r.json();
+    }).then(function(d){
+      stage = "본문 해석";
+      if(rawOk) return d;
+      lastRaw = (d.content||[]).map(function(b){ return b.type==="text" ? b.text : ""; }).join("");
+      var c = lastRaw.replace(/```json/g,"").replace(/```/g,"").trim();
+      var out = parseLoose(c);
+      if(d.stop_reason === "max_tokens"){
+        // 잘린 응답은 일부만 살아남으므로 더 짧게 재요청한다. 복구본은 최후 수단으로 보관.
+        var te = new Error("응답 길이 초과");
+        te.partial = out;
+        throw te;
+      }
+      return out;
+    }).catch(function(e){
+      var msg = (e && e.name === "AbortError") ? "60초 내 응답 없음"
+        : (stage === "요청 전송") ? "인터넷에 연결할 수 없습니다"
+        : (e && e.message) || "알 수 없는 오류";
+      var wrapped = new Error(msg);
+      wrapped.stage = stage;
+      wrapped.needShorter = (stage === "본문 해석");
+      wrapped.partial = e && e.partial;
+      wrapped.noRetry = !!(e && e.noRetry);
+      throw wrapped;
+    }).then(function(v){
+      clearTimeout(timer); return v;
+    }, function(e){
+      clearTimeout(timer); throw e;
+    });
+  }
+
+  // 1회 자동 재시도: 길이 초과로 잘린 경우 더 짧게 다시 요청
+  function ask(sys, usr){
+    return agent(sys, usr).catch(function(e){
+      if(e.noRetry) throw e;
+      var extra = e.needShorter
+        ? "\n\n[재요청] 직전 응답이 길이 제한으로 잘렸다. 항목 수와 문장 길이를 절반으로 줄여 훨씬 짧게 출력하라."
+        : "";
+      return agent(sys, usr + extra).catch(function(e2){
+        if(e.partial) return e.partial;   // 재요청도 실패하면 1차 복구본이라도 보여준다
+        if(e2.partial) return e2.partial;
+        e2.firstStage = e.stage;
+        throw e2;
+      });
+    });
+  }
+
+  /* ── 저장소: localStorage (없으면 메모리) ─────── */
+  var mem = {};
+  function lsGet(k){ try{ return window.localStorage.getItem(k); }catch(e){ return mem[k] || null; } }
+  function lsSet(k, v){ try{ window.localStorage.setItem(k, v); }catch(e){ mem[k] = v; } }
+  function lsDel(k){ try{ window.localStorage.removeItem(k); }catch(e){ delete mem[k]; } }
+
+  function loadLog(){
+    try{ var raw = lsGet(KEY); return raw ? JSON.parse(raw) : []; }catch(e){ return []; }
+  }
+  function saveLog(){ lsSet(KEY, JSON.stringify(log.slice(-30))); }
+  function askPersist(){
+    try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function(){}); }catch(e){}
+  }
+  function stats(){
+    if(!log.length){ $("stats").textContent = ""; return; }
+    var ok = log.filter(function(l){ return l.worked; }).length;
+    $("stats").textContent = "기록 " + log.length + "건 · 통한 것 " + ok + "건 (다음 계획에 반영됨)";
+  }
+
+  /* ── API 키 / 모델 ──────────────────────────────── */
+  var K_KEY = "anthropic-key", K_MODEL = "anthropic-model";
+  var MODELS = { "Sonnet 5 (권장)": "claude-sonnet-5", "Haiku 4.5 (저렴)": "claude-haiku-4-5-20251001" };
+  function apiKey(){ return lsGet(K_KEY) || ""; }
+
+  /* ── 개월 수: 태어난 달 기준으로 매달 자동 계산 ─── */
+  // 개인정보(생년월·동네)는 코드에 넣지 않고 이 기기에만 저장한다. 친구 값이 없으면 딸과 같은 달로 간주.
+  function okYM(v){ return /^\d{4}-\d{2}$/.test(v || ""); }
+  function bornOf(k){
+    var v = lsGet("born-" + k); if(okYM(v)) return v;
+    var me = lsGet("born-born"); return okYM(me) ? me : "";
+  }
+  function area(){ return (lsGet("area") || "").slice(0, 30); }
+  function monthsSince(ym, now){
+    if(!okYM(ym)) return 0;
+    var p = ym.split("-"); now = now || new Date();
+    return Math.max(0, (now.getFullYear() - (+p[0])) * 12 + (now.getMonth() + 1 - (+p[1])));
+  }
+  function ages(now){
+    var me = monthsSince(bornOf("born"), now), f1 = monthsSince(bornOf("f1"), now),
+        f2 = monthsSince(bornOf("f2"), now), f3 = monthsSince(bornOf("f3"), now);
+    var all = [me, f1, f2, f3].sort(function(a,b){ return a-b; });
+    return { me:me, f1:f1, f2:f2, f3:f3, min:all[0], max:all[3], list:all.join("·") };
+  }
+  function paintAges(){
+    var A = ages();
+    if(!okYM(lsGet("born-born"))){ $("eyebrow").textContent = "딸 · 아빠 전용"; return; }
+    $("eyebrow").textContent = A.me + "개월 · 딸 · 아빠 전용";
+    $("kids-line").textContent = "아이 4명 · " + A.list.split("·").join(" / ") + "개월 · 부모 전원 동석 기준";
+  }
+  function modelId(){ return lsGet(K_MODEL) || "claude-sonnet-5"; }
+
+  /* ── 칩 ──────────────────────────────────────────── */
+  var picked = {};
+  function chips(id, opts, initial, onPick){
+    picked[id] = initial;
+    var box = $(id);
+    box.innerHTML = opts.map(function(o){
+      return '<button type="button" class="chip' + (o===initial?" on":"") + '" data-v="' + esc(o) + '">' + esc(o) + '</button>';
+    }).join("");
+    box.addEventListener("click", function(ev){
+      var b = ev.target.closest(".chip");
+      if(!b) return;
+      picked[id] = b.getAttribute("data-v");
+      Array.prototype.forEach.call(box.querySelectorAll(".chip"), function(c){
+        c.className = "chip" + (c === b ? " on" : "");
+      });
+      if(onPick) onPick(picked[id]);
+    });
+  }
+
+  /* ── 탭 ──────────────────────────────────────────── */
+  var ACCENT = { tonight:"var(--lamp)", sos:"var(--coral)", weekend:"var(--sky)" };
+  Array.prototype.forEach.call(document.querySelectorAll("nav button"), function(b){
+    b.addEventListener("click", function(){
+      var t = b.getAttribute("data-tab");
+      Array.prototype.forEach.call(document.querySelectorAll("nav button"), function(x){
+        x.className = x === b ? "on" : "";
+        x.style.color = x === b ? ACCENT[t] : "";
+      });
+      ["tonight","sos","weekend"].forEach(function(k){
+        $("p-" + k).className = (k === t) ? "" : "hide";
+      });
+      document.documentElement.style.setProperty("--accent", ACCENT[t]);
+    });
+  });
+  document.querySelector('nav button[data-tab="tonight"]').style.color = ACCENT.tonight;
+
+  /* ── 공통 상태 UI ───────────────────────────────── */
+  function busy(btnId, on, label){
+    var b = $(btnId);
+    b.disabled = on;
+    b.textContent = on ? "생각하는 중…" : label;
+  }
+  function errBox(outId, err, retry){
+    var stage = (err && err.stage) || "알 수 없음";
+    var snip = lastRaw ? lastRaw.slice(0, 200) : "";
+    $(outId).innerHTML =
+      '<div class="card warn"><span class="flabel">' + ((err && err.noRetry) ? "실행하지 못했습니다" : "두 번 시도했지만 실패했습니다") + '</span>' +
+      '<p style="font-size:13px;margin:0 0 10px">실패 단계: <b>' + esc(stage) + '</b><br>사유: ' + esc((err && err.message) || "") + '</p>' +
+      '<p style="font-size:12px;color:var(--dim);margin:0 0 12px">' +
+      (stage === "요청 전송" ? "인터넷 연결을 확인하고 다시 시도하십시오."
+        : stage === "응답 수신" ? ((err && err.noRetry) ? "설정 또는 콘솔에서 위 사유를 해결한 뒤 다시 시도하십시오." : "잠시 후 다시 시도하십시오.")
+        : "응답이 길이 제한으로 잘렸을 가능성이 큽니다. 조건을 줄여 다시 시도하십시오.") + '</p>' +
+      (snip ? '<details style="margin-bottom:12px"><summary style="font-size:12px;color:var(--dim);cursor:pointer">받은 응답 앞부분 보기</summary>' +
+        '<pre style="white-space:pre-wrap;word-break:break-all;font-size:11px;color:var(--dim);margin:8px 0 0">' + esc(snip) + '</pre></details>' : "") +
+      '<button type="button" class="chip on" id="retry-' + outId + '">다시 시도</button></div>';
+    $("retry-" + outId).addEventListener("click", retry);
+  }
+
+  /* ── 1. 오늘 밤 ─────────────────────────────────── */
+  var MOOD = ["쌩쌩함","보통","예민함","낮잠 못 잠","콧물·기침"];
+  chips("mood", MOOD, "보통");
+
+  function toMin(t){ var p = String(t||"0:0").split(":"); return (+p[0])*60 + (+p[1]); }
+  function total(){ return Math.max(0, toMin($("bed").value) - toMin($("home").value)); }
+  function refreshClock(){
+    $("left").textContent = total();
+    $("span").textContent = $("home").value + " → " + $("bed").value;
+  }
+  $("home").addEventListener("change", refreshClock);
+  $("bed").addEventListener("change", refreshClock);
+
+  function runTonight(){
+    if(!apiKey()){ showSetup(true); return; }
+    var T = total();
+    busy("run-tonight", true);
+    $("out-tonight").innerHTML = "";
+    var hist = log.slice(-6).map(function(l){
+      return "- " + l.title + " → " + (l.worked ? "효과 있었음" : "효과 없었음");
+    }).join("\n");
+
+    var sys = ctx() + "\n\n" + [
+      "너는 이 아빠의 평일 저녁 담당 코치다. 귀가부터 취침까지 남은 시간을 블록으로 쪼개 설계한다.",
+      "규칙:",
+      "- blocks의 minutes 합계는 남은 시간의 70~85% 사이. 나머지는 지연·저항 대비 여유로 남긴다.",
+      "- 목욕·양치·잠자리는 어차피 해야 하는 일이므로, 그 안에서 교감이 일어나도록 설계한다.",
+      "- 각 블록에 아빠가 실제로 뱉을 대사(say)를 1~2개. " + ages().me + "개월이 이해할 짧은 문장으로.",
+      "- 화면 노출과 각성 유발 몸놀이는 취침 40분 전부터 배제한다.",
+      "- 분량 상한: blocks 3개 이하, why 40자 이내, how 2개 이하 각 30자 이내, say 1개 20자 이내, watch 40자 이내. 상한을 넘기지 마라.",
+      "",
+      'JSON: {"headline":"오늘 밤의 한 줄 방향","blocks":[{"minutes":숫자,"title":"","why":"1문장","how":["행동 2~3개"],"say":["대사"]}],"watch":"오늘 놓치기 쉬운 것 1문장"}'
+    ].join("\n");
+
+    var usr = "귀가 " + $("home").value + ", 목표 취침 " + $("bed").value + ", 남은 시간 " + T + "분.\n" +
+      "아이 컨디션: " + picked.mood + "\n" +
+      "오늘 특이사항: " + ($("note").value || "없음") +
+      (hist ? "\n\n최근 아빠 피드백:\n" + hist : "");
+
+    ask(sys, usr).then(function(r){
+      var blocks = arr(r.blocks);
+      var used = blocks.reduce(function(a,b){ return a + (+b.minutes || 0); }, 0);
+      $("gauge").innerHTML = blocks.map(function(b,i){
+        var w = T ? ((+b.minutes||0)/T*100) : 0;
+        return '<i style="width:' + w.toFixed(1) + '%;background:' + (i%2 ? "var(--mint)" : "var(--lamp)") + '"></i>';
+      }).join("");
+      $("split").className = "meta";
+      $("split").textContent = "계획 " + used + "분 · 여유 " + (T - used) + "분";
+
+      var html = '<p style="font-family:Georgia,serif;font-size:18px;margin:18px 2px 12px">' + esc(r.headline) + '</p>';
+      blocks.forEach(function(b, i){
+        html += '<div class="card">' +
+          '<div style="display:flex;gap:10px;align-items:center"><span class="pill">' + esc(b.minutes) + '분</span><h3>' + esc(b.title) + '</h3></div>' +
+          '<p class="why">' + esc(b.why) + '</p>' +
+          '<ol class="how">' + arr(b.how).map(function(h){ return "<li>" + esc(h) + "</li>"; }).join("") + '</ol>' +
+          arr(b.say).map(function(s){ return '<p class="say">“' + esc(s) + '”</p>'; }).join("") +
+          '<div class="fb"><button type="button" class="ok" data-t="' + esc(b.title) + '" data-w="1">✓ 통했음</button>' +
+          '<button type="button" class="no" data-t="' + esc(b.title) + '" data-w="0">✕ 안 통했음</button></div></div>';
+      });
+      if(r.watch) html += '<div class="card sub"><span class="flabel">오늘 놓치기 쉬운 것</span>' + esc(r.watch) + '</div>';
+      $("out-tonight").innerHTML = html;
+
+      Array.prototype.forEach.call($("out-tonight").querySelectorAll(".fb button"), function(b){
+        b.addEventListener("click", function(){
+          log.push({ title: b.getAttribute("data-t"), worked: b.getAttribute("data-w") === "1", at: Date.now() });
+          saveLog(); stats();
+          b.parentNode.innerHTML = '<span style="font-size:12px;color:var(--dim)">기록됨</span>';
+        });
+      });
+    }).catch(function(e){
+      errBox("out-tonight", e, runTonight);
+    }).then(function(){
+      busy("run-tonight", false, "오늘 밤 짜기");
+    });
+  }
+  $("run-tonight").addEventListener("click", runTonight);
+
+  /* ── 2. 지금 이 상황 ────────────────────────────── */
+  chips("sit", ["드러누워 떼씀","밥 안 먹음","양치 거부","잠 안 자려 함","때리거나 물었음","장난감 안 놓음","친구랑 부딪힘","직접 입력"], "드러누워 떼씀",
+    function(v){ $("free-wrap").className = (v === "직접 입력") ? "f" : "f hide"; });
+  chips("where", ["집","차 안","마트·식당","놀이터","친구네 집"], "집");
+
+  function runSos(){
+    if(!apiKey()){ showSetup(true); return; }
+    var situation = picked.sit === "직접 입력" ? $("free").value.trim() : picked.sit;
+    if(!situation){ $("free").focus(); return; }
+    busy("run-sos", true);
+    $("out-sos").innerHTML = "";
+
+    var sys = ctx() + "\n\n" + [
+      "너는 상황이 벌어지는 그 자리에서 아빠가 30초 안에 읽는 대응 카드다.",
+      "규칙:",
+      "- 훈육이 아니라 감정 조절 보조가 " + ages().me + "개월의 기준이다. 설명·설득·협상은 이 나이에 통하지 않는다.",
+      "- steps는 3~4단계. 각 단계에 아빠의 몸 동작(action)과 실제 대사(say)를 함께 준다.",
+      "- 대사는 6어절 이내, 아이가 아는 단어로.",
+      "- 체벌, 겁주기, 방에 혼자 가두기, 음식으로 협상하기는 절대 제안하지 않는다.",
+      "- 집 밖이면 남의 시선보다 아이 안전과 진정이 우선임을 전제로 짠다.",
+      "- 분량 상한: read 60자 이내, steps 3개, action 35자 이내, avoid 3개 각 20자 이내, after 40자 이내.",
+      "",
+      'JSON: {"read":"지금 아이에게 벌어지는 일 1~2문장","steps":[{"label":"단계명","action":"몸 동작","say":"대사"}],"avoid":["역효과 2~3개"],"after":"끝난 뒤 할 것 1문장"}'
+    ].join("\n");
+
+    ask(sys, "상황: " + situation + "\n장소: " + picked.where).then(function(r){
+      var html = '<div class="card sub"><span class="flabel">지금 아이 상태</span>' + esc(r.read) + '</div>';
+      arr(r.steps).forEach(function(s, i){
+        html += '<div class="card"><div style="display:flex;gap:10px;align-items:center">' +
+          '<span class="num">' + (i+1) + '</span><h3>' + esc(s.label) + '</h3></div>' +
+          '<p style="font-size:14px;margin:10px 0 0 34px">' + esc(s.action) + '</p>' +
+          '<div style="margin-left:34px"><p class="say">“' + esc(s.say) + '”</p></div></div>';
+      });
+      if(arr(r.avoid).length){
+        html += '<div class="card warn"><span class="flabel">하면 역효과</span>' +
+          arr(r.avoid).map(function(a){ return '<div style="font-size:14px">· ' + esc(a) + '</div>'; }).join("") + '</div>';
+      }
+      if(r.after) html += '<div class="card sub"><span class="flabel">상황이 끝난 뒤</span>' + esc(r.after) + '</div>';
+      $("out-sos").innerHTML = html;
+    }).catch(function(e){
+      errBox("out-sos", e, runSos);
+    }).then(function(){
+      busy("run-sos", false, "대응 카드 열기");
+    });
+  }
+  $("run-sos").addEventListener("click", runSos);
+
+  /* ── 3. 주말 모임 ───────────────────────────────── */
+  chips("weather", ["맑음","더움","추움","비","미세먼지 나쁨"], "맑음");
+  chips("span-w", ["2시간 이내","반나절 (3~4시간)","하루 종일"], "반나절 (3~4시간)");
+
+  function runWeekend(){
+    if(!apiKey()){ showSetup(true); return; }
+    busy("run-weekend", true);
+    $("out-weekend").innerHTML = "";
+
+    var sys = ctx() + "\n\n" + [
+      "너는 4가족 합동 나들이의 사전 설계자다. 아이 4명(" + ages().list + "개월)과 부모 8명이 함께 움직인다.",
+      "규칙:",
+      "- " + ages().min + "개월과 " + ages().max + "개월은 체력과 낮잠 시점이 다르다. 가장 어린 아이를 기준으로 이동 거리를 잡는다.",
+      "- " + (area() ? area() + "에서" : "집에서") + " 차로 60분 이내를 기본 반경. 특정 상호명이 확실하지 않으면 'OO 유형의 장소'로 제시하고 사전 확인이 필요함을 명시한다.",
+      "- timeline에 이동 중 차량 낮잠, 식사, 기저귀·화장실 지점을 반드시 배치한다.",
+      "- risk에는 아이 4명 동시 인솔 시 안전 취약점을 구체적으로 쓴다(주차장 동선, 물가, 계단, 미아 등).",
+      "- 분량 상한: why 60자 이내, timeline 6개 이하 각 what 30자 이내, pack 8개 이하 각 10자 이내, risk 70자 이내, confirm 40자 이내.",
+      "",
+      'JSON: {"pick":"장소 또는 활동 유형","why":"1~2문장","confirm":"미리 확인할 것 1문장","timeline":[{"time":"10:30","what":""}],"pack":["준비물"],"risk":"안전 취약점"}'
+    ].join("\n");
+
+    var usr = "날씨: " + picked.weather + "\n소요: " + picked["span-w"] +
+      "\n출발 시각: " + $("start").value + "\n추가 조건: " + ($("wnote").value || "없음");
+
+    ask(sys, usr).then(function(r){
+      var html = '<div class="card"><h3 style="font-size:20px;color:var(--sky)">' + esc(r.pick) + '</h3>' +
+        '<p style="font-size:14px;margin:10px 0 0">' + esc(r.why) + '</p>' +
+        (r.confirm ? '<p class="meta" style="background:var(--panel2);border-radius:8px;padding:9px 12px;margin-top:12px">먼저 확인: ' + esc(r.confirm) + '</p>' : "") +
+        '</div>';
+      if(arr(r.timeline).length){
+        html += '<div class="card"><span class="flabel">타임라인</span>' +
+          arr(r.timeline).map(function(t){
+            return '<div class="tl"><b>' + esc(t.time) + '</b><span>' + esc(t.what) + '</span></div>';
+          }).join("") + '</div>';
+      }
+      if(arr(r.pack).length){
+        html += '<div class="card"><span class="flabel">챙길 것</span>' +
+          arr(r.pack).map(function(p){ return '<span class="tag">' + esc(p) + '</span>'; }).join("") + '</div>';
+      }
+      if(r.risk) html += '<div class="card warn"><span class="flabel">인솔 취약점</span>' + esc(r.risk) + '</div>';
+      $("out-weekend").innerHTML = html;
+    }).catch(function(e){
+      errBox("out-weekend", e, runWeekend);
+    }).then(function(){
+      busy("run-weekend", false, "모임 설계하기");
+    });
+  }
+  $("run-weekend").addEventListener("click", runWeekend);
+
+  /* ── 설정 화면 ──────────────────────────────────── */
+  var MODEL_LABELS = Object.keys(MODELS);
+  function currentLabel(){
+    var id = modelId();
+    for(var i=0;i<MODEL_LABELS.length;i++){ if(MODELS[MODEL_LABELS[i]] === id) return MODEL_LABELS[i]; }
+    return MODEL_LABELS[0];
+  }
+  chips("model", MODEL_LABELS, currentLabel());
+
+  function showSetup(on){
+    $("p-setup").className = on ? "" : "hide";
+    document.querySelector("nav").className = on ? "hide" : "";
+    ["tonight","sos","weekend"].forEach(function(k){
+      if(on) $("p-" + k).className = "hide";
+    });
+    if(!on){
+      var cur = document.querySelector("nav button.on") || document.querySelector("nav button");
+      $("p-" + cur.getAttribute("data-tab")).className = "";
+    }
+    if(on){
+      var k = apiKey();
+      $("key").value = k;
+      $("clear-key").className = k ? "ghost" : "ghost hide";
+      $("key-state").textContent = k ? "저장된 키 있음 (" + k.slice(0, 7) + "…" + k.slice(-4) + ")" : "저장된 키 없음";
+      $("key-state").style.color = k ? "var(--mint)" : "var(--dim)";
+      ["born","f1","f2","f3"].forEach(function(id){ var v = lsGet("born-" + id); $(id).value = okYM(v) ? v : ""; });
+      $("area").value = area();
+    }
+  }
+
+  $("gear").addEventListener("click", function(){
+    showSetup($("p-setup").className === "hide");
+  });
+
+  function setState(t, c){ $("key-state").textContent = t; $("key-state").style.color = c; }
+
+  $("save-key").addEventListener("click", function(){
+    var v = $("key").value.replace(/\s+/g, "");
+    if(!v){ setState("키를 입력하십시오", "var(--coral)"); return; }
+    if(v.indexOf("sk-ant-") !== 0){ setState("키는 sk-ant- 로 시작해야 합니다. 복사가 잘렸는지 확인하십시오", "var(--coral)"); return; }
+    if(!okYM($("born").value)){ setState("딸 태어난 달을 입력하십시오", "var(--coral)"); return; }
+    ["born","f1","f2","f3"].forEach(function(id){
+      var m = $(id).value; if(okYM(m)) lsSet("born-" + id, m); else lsDel("born-" + id);
+    });
+    lsSet("area", $("area").value.trim().slice(0, 30));
+    var prevKey = apiKey(), prevModel = lsGet(K_MODEL);
+    lsSet(K_KEY, v);
+    lsSet(K_MODEL, MODELS[picked.model] || "claude-sonnet-5");
+    var btn = $("save-key"); btn.disabled = true; btn.textContent = "키 확인 중…";
+    setState("Anthropic 서버에 연결해 키를 확인하는 중입니다", "var(--dim)");
+    agent("", "ping", 5, true).then(function(){
+      askPersist(); paintAges(); showSetup(false);
+    }).catch(function(e){
+      if(prevKey) lsSet(K_KEY, prevKey); else lsDel(K_KEY);
+      if(prevModel) lsSet(K_MODEL, prevModel); else lsDel(K_MODEL);
+      setState("저장하지 않았습니다: " + e.message, "var(--coral)");
+    }).then(function(){ btn.disabled = false; btn.textContent = "키 확인하고 저장"; });
+  });
+
+  $("clear-key").addEventListener("click", function(){
+    lsDel(K_KEY);
+    $("key").value = "";
+    showSetup(true);
+  });
+
+  /* ── 초기화 ─────────────────────────────────────── */
+  refreshClock();
+  log = loadLog(); stats();
+  paintAges();
+  showSetup(!apiKey());
+
+  if("serviceWorker" in navigator && location.protocol === "https:"){
+    navigator.serviceWorker.register("./sw.js").catch(function(){});
+  }
+
+})();
+</script>
+</body>
+</html>
