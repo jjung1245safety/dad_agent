@@ -81,6 +81,16 @@
   .info{background:var(--panel2);border-radius:8px;padding:9px 12px;margin-top:12px;font-size:12px;color:var(--dim);font-family:ui-monospace,Menlo,Consolas,monospace}
   .info .src{display:block;margin-top:6px;font-family:inherit;font-size:11px;color:var(--mint);text-decoration:underline;text-underline-offset:2px;word-break:break-all}
   .srcs a{color:var(--dim);font-size:11px;word-break:break-all}
+  .hist{margin:0 0 12px}
+  .hist summary{font-size:12px;color:var(--dim);cursor:pointer;padding:6px 2px;list-style:none}
+  .hist summary::-webkit-details-marker{display:none}
+  .hist summary::before{content:"▸ ";}
+  .hist[open] summary::before{content:"▾ ";}
+  .hrow{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding:9px 2px}
+  .hrow .open{flex:1;text-align:left;background:transparent;border:0;color:var(--text);font-size:13px;font-family:inherit;cursor:pointer;padding:0;line-height:1.4}
+  .hrow .open small{display:block;color:var(--dim);font-size:11px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  .hrow .del{background:transparent;border:1px solid var(--line);color:var(--dim);border-radius:6px;font-size:11px;padding:4px 8px;cursor:pointer;font-family:inherit}
+  .hclear{background:transparent;border:0;color:var(--coral);font-size:11px;padding:8px 2px;cursor:pointer;font-family:inherit}
   .restored{font-size:11px;color:var(--dim);margin:14px 2px 0;font-family:ui-monospace,Menlo,Consolas,monospace}
   .warn{border-color:var(--coral)}
   .warn .flabel{color:var(--coral)}
@@ -191,6 +201,7 @@
         <input id="note" maxlength="200" placeholder="예: 어린이집에서 친구랑 다툼, 저녁 안 먹음" /></label>
       <button class="run" id="run-tonight">오늘 밤 짜기</button>
     </div>
+    <details class="hist hide" id="hist-tonight"><summary>지난 결과 <span class="hn"></span></summary><div class="hlist"></div></details>
     <div id="out-tonight"></div>
   </section>
 
@@ -203,6 +214,7 @@
       <div class="f"><span class="flabel">장소</span><div class="chips" id="where"></div></div>
       <button class="run" id="run-sos">대응 카드 열기</button>
     </div>
+    <details class="hist hide" id="hist-sos"><summary>지난 결과 <span class="hn"></span></summary><div class="hlist"></div></details>
     <div id="out-sos"></div>
   </section>
 
@@ -227,6 +239,7 @@
       <button class="run" id="run-weekend">장소 찾고 설계하기</button>
       <p class="note" style="margin:10px 0 0">실제로 웹 검색을 해서 장소 2~3곳을 정합니다. 30초~1분 걸리고, 1회 약 100~300원(추정)입니다.</p>
     </div>
+    <details class="hist hide" id="hist-weekend"><summary>지난 결과 <span class="hn"></span></summary><div class="hlist"></div></details>
     <div id="out-weekend"></div>
   </section>
 
@@ -244,6 +257,7 @@
   var esc = function(s){ return String(s == null ? "" : s)
     .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); };
   var arr = function(v){ return Array.isArray(v) ? v : []; };
+  var str = function(v){ return typeof v === "string" ? v : ""; };
   var KEY = "dad-agent-log-v1";
   var log = [];
 
@@ -528,50 +542,129 @@
     $("retry-" + outId).addEventListener("click", retry);
   }
 
-  /* ── 마지막 결과 보관: 앱을 닫았다 열어도 방금 본 결과가 남도록 ── */
-  function keep(tab){
-    try{
-      var o = { html:$("out-" + tab).innerHTML, at:Date.now() };
-      if(tab === "tonight"){ o.gauge = $("gauge").innerHTML; o.split = $("split").textContent; o.cls = $("split").className; }
-      lsSet("last-" + tab, JSON.stringify(o));
-    }catch(e){}
+  /* ── 결과 기록: 화면이 아니라 '내용'을 저장한다 ──
+     앱이 업데이트돼도 지난 결과를 최신 화면(새 버튼 포함)으로 다시 그리므로 재검색 비용이 들지 않는다. */
+  var HKEY = "hist-v1", HMAX = 30;
+  function histAll(){ try{ var h = JSON.parse(lsGet(HKEY) || "[]"); return Array.isArray(h) ? h : []; }catch(e){ return []; } }
+  function histSave(h){ lsSet(HKEY, JSON.stringify(h)); }
+  function histOf(tab){ return histAll().filter(function(e){ return e.tab === tab; }).sort(function(a,b){ return b.at - a.at; }); }
+  function saveEntry(tab, o){
+    o.tab = tab; o.at = Date.now(); o.id = tab + "-" + o.at;
+    var h = histAll(); h.push(o);
+    var mine = h.filter(function(e){ return e.tab === tab; }).sort(function(a,b){ return b.at - a.at; });
+    var drop = mine.slice(HMAX).map(function(e){ return e.id; });
+    h = h.filter(function(e){ return drop.indexOf(e.id) === -1; });
+    histSave(h); paintHist(tab);
+    return o;
   }
+  function updateEntry(o){
+    var h = histAll().map(function(e){ return e.id === o.id ? o : e; }); histSave(h);
+  }
+  function deleteEntry(id){ histSave(histAll().filter(function(e){ return e.id !== id; })); }
   function hhmm(t){ var d = new Date(t); return (d.getMonth()+1) + "/" + d.getDate() + " " + ("0"+d.getHours()).slice(-2) + ":" + ("0"+d.getMinutes()).slice(-2); }
-  function restore(tab){
+  var SHOW = {};  // tab -> 화면 그리는 함수 (아래에서 등록)
+  function showEntry(e, past){
+    if(!e || !SHOW[e.tab]) return;
+    SHOW[e.tab](e, past);
+    if(past){
+      $("out-" + e.tab).insertAdjacentHTML("afterbegin", '<p class="restored">저장된 결과 · ' + hhmm(e.at) + ' · 다시 검색하지 않고 불러옴</p>');
+    }
+  }
+  function paintHist(tab){
+    var box = $("hist-" + tab), list = histOf(tab);
+    box.className = list.length ? "hist" : "hist hide";
+    box.querySelector(".hn").textContent = "(" + list.length + ")";
+    box.querySelector(".hlist").innerHTML = list.map(function(e){
+      return '<div class="hrow"><button type="button" class="open" data-id="' + esc(e.id) + '"><small>' + hhmm(e.at) + '</small>' + esc(e.label || "결과") + '</button>' +
+        '<button type="button" class="del" data-id="' + esc(e.id) + '">삭제</button></div>';
+    }).join("") + '<button type="button" class="hclear">이 탭의 지난 결과 모두 지우기</button>';
+  }
+  ["tonight","sos","weekend"].forEach(function(tab){
+    $("hist-" + tab).addEventListener("click", function(ev){
+      var o = ev.target.closest(".open"), d = ev.target.closest(".del"), c = ev.target.closest(".hclear");
+      if(o){
+        var e = histAll().filter(function(x){ return x.id === o.getAttribute("data-id"); })[0];
+        showEntry(e, true); $("hist-" + tab).open = false;
+        var out = $("out-" + tab); if(out.scrollIntoView) out.scrollIntoView({ behavior:"smooth", block:"start" });
+      } else if(d){
+        deleteEntry(d.getAttribute("data-id")); paintHist(tab);
+      } else if(c){
+        histSave(histAll().filter(function(x){ return x.tab !== tab; })); paintHist(tab);
+        $("out-" + tab).innerHTML = "";
+      }
+    });
+  });
+
+  // 이전 버전이 화면째 저장한 결과: 그대로 띄우되 주말 카드는 지도 버튼·출처를 새 방식으로 고친다
+  function legacyRestore(tab){
     var o; try{ o = JSON.parse(lsGet("last-" + tab) || "null"); }catch(e){ o = null; }
-    if(!o || !o.html) return;
-    if(Date.now() - o.at > 3 * 86400000) return; // 사흘 지난 결과는 띄우지 않음
+    if(!o || !o.html || Date.now() - o.at > 3 * 86400000) return false;
     $("out-" + tab).innerHTML = '<p class="restored">마지막 결과 · ' + hhmm(o.at) + '</p>' + o.html;
     if(tab === "tonight"){
       $("gauge").innerHTML = o.gauge || ""; $("split").textContent = o.split || ""; $("split").className = o.cls || "meta hide";
       Array.prototype.forEach.call($("out-tonight").querySelectorAll(".fb"), function(box){
-        if(box.querySelector(".undo")){ box.querySelector(".undo").remove(); return; }
-        wireFeedback(box);
+        if(box.querySelector(".undo")) box.querySelector(".undo").remove();
+        else box.innerHTML = "";
       });
     }
+    if(tab === "weekend"){
+      Array.prototype.forEach.call($("out-weekend").querySelectorAll(".card.pick"), function(card){
+        var name = (card.querySelector("h3") || {}).textContent || "";
+        var links = card.querySelector(".links"); if(!name || !links) return;
+        var src = "";
+        Array.prototype.forEach.call(links.querySelectorAll("a"), function(a){ if(a.textContent.indexOf("근거") !== -1) src = a.getAttribute("href") || ""; });
+        var old = card.querySelector("p.meta");
+        if(old){
+          var info = document.createElement("div"); info.className = "info"; info.textContent = old.textContent;
+          if(/^https?:\/\//.test(src)){
+            var s1 = document.createElement("a"); s1.className = "src"; s1.href = src; s1.target = "_blank"; s1.rel = "noopener noreferrer";
+            s1.textContent = "출처 · " + hostOf(src) + " ↗"; info.appendChild(s1);
+          }
+          old.parentNode.replaceChild(info, old);
+        }
+        links.innerHTML = mapLinks(name);
+      });
+    }
+    return true;
+  }
+  function restore(tab){
+    paintHist(tab);
+    var e = histOf(tab)[0];
+    if(e && Date.now() - e.at <= 3 * 86400000){ showEntry(e, true); return; }
+    if(!e) legacyRestore(tab);
   }
 
-  /* ── 통했음/안 통했음: 누른 뒤에도 취소 가능 ─────── */
-  function wireFeedback(box){
-    var ok = box.querySelector(".ok"), no = box.querySelector(".no");
-    var title = ok.getAttribute("data-t"), orig = box.innerHTML;
-    function mark(worked){
-      var at = Date.now();
-      log.push({ title: title, worked: worked, at: at });
-      saveLog(); stats();
-      box.innerHTML = '<span class="done">' + (worked ? "통했음" : "안 통했음") + '으로 기록</span>' +
+  /* ── 통했음/안 통했음: 누른 뒤에도 취소 가능, 기록에 남음 ─────── */
+  function fbButtons(title){
+    return '<button type="button" class="ok" data-t="' + esc(title) + '">✓ 통했음</button>' +
+           '<button type="button" class="no" data-t="' + esc(title) + '">✕ 안 통했음</button>';
+  }
+  function wireFeedback(box, entry){
+    var title = box.getAttribute("data-t");
+    entry.fb = entry.fb || {};
+    function paintDone(m){
+      box.innerHTML = '<span class="done">' + (m.worked ? "통했음" : "안 통했음") + '으로 기록</span>' +
         '<button type="button" class="undo">취소</button>';
-      keep("tonight");
       box.querySelector(".undo").addEventListener("click", function(){
-        log = log.filter(function(l){ return l.at !== at; });
+        log = log.filter(function(l){ return l.at !== m.at; });
         saveLog(); stats();
-        box.innerHTML = orig;
-        wireFeedback(box);
-        keep("tonight");
+        delete entry.fb[title]; updateEntry(entry);
+        paintOpen();
       });
     }
-    ok.addEventListener("click", function(){ mark(true); });
-    no.addEventListener("click", function(){ mark(false); });
+    function paintOpen(){
+      box.innerHTML = fbButtons(title);
+      box.querySelector(".ok").addEventListener("click", function(){ mark(true); });
+      box.querySelector(".no").addEventListener("click", function(){ mark(false); });
+    }
+    function mark(worked){
+      var m = { worked: worked, at: Date.now() };
+      log.push({ title: title, worked: worked, at: m.at });
+      saveLog(); stats();
+      entry.fb[title] = m; updateEntry(entry);
+      paintDone(m);
+    }
+    if(entry.fb[title]) paintDone(entry.fb[title]); else paintOpen();
   }
 
   /* ── 1. 오늘 밤 ─────────────────────────────────── */
@@ -615,6 +708,33 @@
   $("home").addEventListener("change", refreshClock);
   $("bed").addEventListener("change", refreshClock);
 
+  SHOW.tonight = function(e){
+    var r = e.data || {}, T = e.T || total();
+    var blocks = arr(r.blocks);
+    var used = blocks.reduce(function(a,b){ return a + (+b.minutes || 0); }, 0);
+    var base = Math.max(T, used) || 1;
+    $("gauge").innerHTML = blocks.map(function(b,i){
+      var w = (+b.minutes||0)/base*100;
+      return '<i style="width:' + w.toFixed(1) + '%;background:' + (i%2 ? "var(--mint)" : "var(--lamp)") + '"></i>';
+    }).join("");
+    $("split").className = used > T ? "meta warnline" : "meta";
+    $("split").textContent = used > T
+      ? "계획 " + used + "분 · 남은 시간보다 " + (used - T) + "분 깁니다. 마지막 블록을 줄이십시오"
+      : "계획 " + used + "분 · 여유 " + (T - used) + "분";
+    var html = '<p style="font-family:Georgia,serif;font-size:18px;margin:18px 2px 12px">' + esc(r.headline) + '</p>';
+    blocks.forEach(function(b){
+      html += '<div class="card">' +
+        '<div style="display:flex;gap:10px;align-items:center"><span class="pill">' + esc(b.minutes) + '분</span><h3>' + esc(b.title) + '</h3></div>' +
+        '<p class="why">' + esc(b.why) + '</p>' +
+        '<ol class="how">' + arr(b.how).map(function(h){ return "<li>" + esc(h) + "</li>"; }).join("") + '</ol>' +
+        arr(b.say).map(function(s){ return '<p class="say">“' + esc(s) + '”</p>'; }).join("") +
+        '<div class="fb" data-t="' + esc(b.title) + '"></div></div>';
+    });
+    if(r.watch) html += '<div class="card sub"><span class="flabel">오늘 놓치기 쉬운 것</span>' + esc(r.watch) + '</div>';
+    $("out-tonight").innerHTML = html;
+    Array.prototype.forEach.call($("out-tonight").querySelectorAll(".fb"), function(box){ wireFeedback(box, e); });
+  };
+
   function runTonight(){
     if(!apiKey()){ showSetup(true); return; }
     var T = total();
@@ -648,33 +768,7 @@
       (hist ? "\n\n최근 " + role() + " 피드백:\n" + hist : "");
 
     ask(sys, usr).then(function(r){
-      var blocks = arr(r.blocks);
-      var used = blocks.reduce(function(a,b){ return a + (+b.minutes || 0); }, 0);
-      var base = Math.max(T, used) || 1;
-      $("gauge").innerHTML = blocks.map(function(b,i){
-        var w = (+b.minutes||0)/base*100;
-        return '<i style="width:' + w.toFixed(1) + '%;background:' + (i%2 ? "var(--mint)" : "var(--lamp)") + '"></i>';
-      }).join("");
-      $("split").className = used > T ? "meta warnline" : "meta";
-      $("split").textContent = used > T
-        ? "계획 " + used + "분 · 남은 시간보다 " + (used - T) + "분 깁니다. 마지막 블록을 줄이십시오"
-        : "계획 " + used + "분 · 여유 " + (T - used) + "분";
-
-      var html = '<p style="font-family:Georgia,serif;font-size:18px;margin:18px 2px 12px">' + esc(r.headline) + '</p>';
-      blocks.forEach(function(b, i){
-        html += '<div class="card">' +
-          '<div style="display:flex;gap:10px;align-items:center"><span class="pill">' + esc(b.minutes) + '분</span><h3>' + esc(b.title) + '</h3></div>' +
-          '<p class="why">' + esc(b.why) + '</p>' +
-          '<ol class="how">' + arr(b.how).map(function(h){ return "<li>" + esc(h) + "</li>"; }).join("") + '</ol>' +
-          arr(b.say).map(function(s){ return '<p class="say">“' + esc(s) + '”</p>'; }).join("") +
-          '<div class="fb"><button type="button" class="ok" data-t="' + esc(b.title) + '" data-w="1">✓ 통했음</button>' +
-          '<button type="button" class="no" data-t="' + esc(b.title) + '" data-w="0">✕ 안 통했음</button></div></div>';
-      });
-      if(r.watch) html += '<div class="card sub"><span class="flabel">오늘 놓치기 쉬운 것</span>' + esc(r.watch) + '</div>';
-      $("out-tonight").innerHTML = html;
-
-      Array.prototype.forEach.call($("out-tonight").querySelectorAll(".fb"), wireFeedback);
-      keep("tonight");
+      showEntry(saveEntry("tonight", { data:r, T:T, label: str(r.headline) || "오늘 밤 계획" }), false);
     }).catch(function(e){
       errBox("out-tonight", e, runTonight);
     }).then(function(){
@@ -697,6 +791,23 @@
     b.className = "chip" + (on ? " on" : ""); b.setAttribute("aria-pressed", on);
   });
   chips("where", ["집","차 안","마트·식당","놀이터","친구네 집"], "집");
+
+  SHOW.sos = function(e){
+    var r = e.data || {};
+    var html = '<div class="card sub"><span class="flabel">지금 아이 상태</span>' + esc(r.read) + '</div>';
+    arr(r.steps).forEach(function(s, i){
+      html += '<div class="card"><div style="display:flex;gap:10px;align-items:center">' +
+        '<span class="num">' + (i+1) + '</span><h3>' + esc(s.label) + '</h3></div>' +
+        '<p style="font-size:14px;margin:10px 0 0 34px">' + esc(s.action) + '</p>' +
+        '<div style="margin-left:34px"><p class="say">“' + esc(s.say) + '”</p></div></div>';
+    });
+    if(arr(r.avoid).length){
+      html += '<div class="card warn"><span class="flabel">하면 역효과</span>' +
+        arr(r.avoid).map(function(a){ return '<div style="font-size:14px">· ' + esc(a) + '</div>'; }).join("") + '</div>';
+    }
+    if(r.after) html += '<div class="card sub"><span class="flabel">상황이 끝난 뒤</span>' + esc(r.after) + '</div>';
+    $("out-sos").innerHTML = html;
+  };
 
   function runSos(){
     if(!apiKey()){ showSetup(true); return; }
@@ -727,20 +838,7 @@
     ].join("\n");
 
     ask(sys, "상황: " + situation + "\n장소: " + picked.where).then(function(r){
-      var html = '<div class="card sub"><span class="flabel">지금 아이 상태</span>' + esc(r.read) + '</div>';
-      arr(r.steps).forEach(function(s, i){
-        html += '<div class="card"><div style="display:flex;gap:10px;align-items:center">' +
-          '<span class="num">' + (i+1) + '</span><h3>' + esc(s.label) + '</h3></div>' +
-          '<p style="font-size:14px;margin:10px 0 0 34px">' + esc(s.action) + '</p>' +
-          '<div style="margin-left:34px"><p class="say">“' + esc(s.say) + '”</p></div></div>';
-      });
-      if(arr(r.avoid).length){
-        html += '<div class="card warn"><span class="flabel">하면 역효과</span>' +
-          arr(r.avoid).map(function(a){ return '<div style="font-size:14px">· ' + esc(a) + '</div>'; }).join("") + '</div>';
-      }
-      if(r.after) html += '<div class="card sub"><span class="flabel">상황이 끝난 뒤</span>' + esc(r.after) + '</div>';
-      $("out-sos").innerHTML = html;
-      keep("sos");
+      showEntry(saveEntry("sos", { data:r, label: situation + " · " + picked.where }), false);
     }).catch(function(e){
       errBox("out-sos", e, runSos);
     }).then(function(){
@@ -804,6 +902,51 @@
       : G.fam + "가족 · 아이 " + G.kids.length + "명 · 어른 " + G.adults + "명";
   }
 
+  function mapLinks(name){
+    var q = encodeURIComponent(name);
+    return '<a href="tmap://search?name=' + q + '">티맵</a><span class="sep">·</span>' +
+      '<a href="https://map.naver.com/p/search/' + q + '" target="_blank" rel="noopener">네이버지도</a><span class="sep">·</span>' +
+      '<a href="https://map.kakao.com/link/search/' + q + '" target="_blank" rel="noopener">카카오맵</a>';
+  }
+  SHOW.weekend = function(e){
+    var r = e.data || {}, srcs = arr(e.sources);
+    var picks = arr(r.picks).filter(function(p){ return p && p.name; });
+    var html = "";
+    if(!picks.length){
+      html += '<div class="card warn"><span class="flabel">장소를 확정하지 못했습니다</span><p style="font-size:13px;margin:0">조건을 넓혀 다시 시도하십시오. 이동 거리를 늘리거나 장소 종류를 상관없음으로 바꾸면 됩니다.</p></div>';
+    }
+    picks.forEach(function(p, i){
+      var src = /^https?:\/\//.test(p.url || "") ? p.url : "";
+      html += '<div class="card pick">' +
+        '<span class="rank">' + (i === 0 ? "1순위" : (i + 1) + "순위") + '</span>' +
+        '<h3>' + esc(p.name) + '</h3>' +
+        '<p class="where">' + esc([p.area, p.drive].filter(Boolean).join(" · ")) + '</p>' +
+        (p.why ? '<p style="font-size:14px;margin:0">' + esc(p.why) + '</p>' : "") +
+        ((p.check || src) ? '<div class="info">' + esc(p.check || "운영 정보 확인 필요") +
+          (src ? '<a class="src" href="' + esc(src) + '" target="_blank" rel="noopener noreferrer">출처 · ' + esc(hostOf(src)) + ' ↗</a>' : "") +
+        '</div>' : "") +
+        '<div class="links">' + mapLinks(p.name) + '</div></div>';
+    });
+    if(arr(r.timeline).length){
+      html += '<div class="card"><span class="flabel">타임라인 (1순위 기준)</span>' +
+        arr(r.timeline).map(function(t){
+          return '<div class="tl"><b>' + esc(t.time) + '</b><span>' + esc(t.what) + '</span></div>';
+        }).join("") + '</div>';
+    }
+    if(arr(r.pack).length){
+      html += '<div class="card"><span class="flabel">챙길 것</span>' +
+        arr(r.pack).map(function(p){ return '<span class="tag">' + esc(p) + '</span>'; }).join("") + '</div>';
+    }
+    if(r.risk) html += '<div class="card warn"><span class="flabel">인솔 취약점</span>' + esc(r.risk) + '</div>';
+    if(srcs.length){
+      html += '<div class="card sub srcs"><span class="flabel">검색한 페이지</span>' +
+        srcs.slice(0, 6).map(function(x){
+          return /^https?:\/\//.test(x.url) ? '<div><a href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">' + esc(x.title) + '</a></div>' : "";
+        }).join("") + '</div>';
+    }
+    html += '<p class="note" style="margin:4px 2px 0">거리·시간은 추정입니다. 출발 전 지도 앱과 운영 정보를 확인하십시오. 티맵 버튼은 티맵 앱이 설치된 폰에서만 열립니다.</p>';
+    $("out-weekend").innerHTML = html;
+  };
   function hostOf(u){ try{ return new URL(u).hostname.replace(/^www\./, ""); }catch(e){ return "페이지"; } }
   function runWeekend(){
     if(!apiKey()){ showSetup(true); return; }
@@ -855,48 +998,9 @@
       user_location:{ type:"approximate", country:"KR", timezone:"Asia/Seoul" } }];
 
     ask(sys, usr, { tools: tools, timeoutMs: 120000, maxTok: 2500 }).then(function(r){
-      var picks = arr(r.picks).filter(function(p){ return p && p.name; });
-      var html = "";
-      if(!picks.length){
-        html += '<div class="card warn"><span class="flabel">장소를 확정하지 못했습니다</span><p style="font-size:13px;margin:0">조건을 넓혀 다시 시도하십시오. 이동 거리를 늘리거나 장소 종류를 상관없음으로 바꾸면 됩니다.</p></div>';
-      }
-      picks.forEach(function(p, i){
-        var q = encodeURIComponent(p.name);
-        var src = /^https?:\/\//.test(p.url || "") ? p.url : "";
-        html += '<div class="card pick">' +
-          '<span class="rank">' + (i === 0 ? "1순위" : (i + 1) + "순위") + '</span>' +
-          '<h3>' + esc(p.name) + '</h3>' +
-          '<p class="where">' + esc([p.area, p.drive].filter(Boolean).join(" · ")) + '</p>' +
-          (p.why ? '<p style="font-size:14px;margin:0">' + esc(p.why) + '</p>' : "") +
-          ((p.check || src) ? '<div class="info">' + esc(p.check || "운영 정보 확인 필요") +
-            (src ? '<a class="src" href="' + esc(src) + '" target="_blank" rel="noopener noreferrer">출처 · ' + esc(hostOf(src)) + ' ↗</a>' : "") +
-          '</div>' : "") +
-          '<div class="links">' +
-            '<a href="tmap://search?name=' + q + '">티맵</a><span class="sep">·</span>' +
-            '<a href="https://map.naver.com/p/search/' + q + '" target="_blank" rel="noopener">네이버지도</a><span class="sep">·</span>' +
-            '<a href="https://map.kakao.com/link/search/' + q + '" target="_blank" rel="noopener">카카오맵</a>' +
-          '</div></div>';
-      });
-      if(arr(r.timeline).length){
-        html += '<div class="card"><span class="flabel">타임라인 (1순위 기준)</span>' +
-          arr(r.timeline).map(function(t){
-            return '<div class="tl"><b>' + esc(t.time) + '</b><span>' + esc(t.what) + '</span></div>';
-          }).join("") + '</div>';
-      }
-      if(arr(r.pack).length){
-        html += '<div class="card"><span class="flabel">챙길 것</span>' +
-          arr(r.pack).map(function(p){ return '<span class="tag">' + esc(p) + '</span>'; }).join("") + '</div>';
-      }
-      if(r.risk) html += '<div class="card warn"><span class="flabel">인솔 취약점</span>' + esc(r.risk) + '</div>';
-      if(lastSources.length){
-        html += '<div class="card sub srcs"><span class="flabel">검색한 페이지</span>' +
-          lastSources.slice(0, 6).map(function(x){
-            return /^https?:\/\//.test(x.url) ? '<div><a href="' + esc(x.url) + '" target="_blank" rel="noopener noreferrer">' + esc(x.title) + '</a></div>' : "";
-          }).join("") + '</div>';
-      }
-      html += '<p class="note" style="margin:4px 2px 0">거리·시간은 추정입니다. 출발 전 지도 앱과 운영 정보를 확인하십시오. 티맵 버튼은 티맵 앱이 설치된 폰에서만 열립니다.</p>';
-      $("out-weekend").innerHTML = html;
-      keep("weekend");
+      var names = arr(r.picks).filter(function(p){ return p && p.name; }).map(function(p){ return p.name; });
+      showEntry(saveEntry("weekend", { data:r, sources: lastSources.slice(0, 6),
+        label: (names.length ? names.join(" · ") : "장소 미확정") + " (" + origin + " 출발)" }), false);
     }).catch(function(e){
       errBox("out-weekend", e, runWeekend);
     }).then(function(){
